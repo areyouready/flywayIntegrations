@@ -26,8 +26,12 @@ public class FlywayIntegrator {
     private final Logger log = LoggerFactory.getLogger(FlywayIntegrator.class);
 
     // inject resource by JNDI name
-    @Resource(name = "${datasource.name}")
-    private DataSource dataSource;
+//    @Resource(name = "${datasource.name}")
+//    private DataSource dataSource;
+
+    // inject actual datasource
+    @Resource
+    private javax.sql.DataSource dataSource;
 
     @PostConstruct
     private void onStartup() {
@@ -39,6 +43,7 @@ public class FlywayIntegrator {
         }
 
         Flyway flyway = new Flyway();
+        flyway.setDataSource(dataSource);
         MigrationInfo migrationInfo = flyway.info().current();
 
         if (migrationInfo == null) {
@@ -49,7 +54,6 @@ public class FlywayIntegrator {
                     + migrationInfo.getDescription());
         }
 
-        flyway.setDataSource(dataSource);
         flyway.migrate();
         log.info("Successfully migrated to database version: {}", flyway.info().current().getVersion());
     }
